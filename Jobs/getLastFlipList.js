@@ -83,7 +83,7 @@ async function run() {
                 req.bet = parseInt(event.returnValues.bet);
                 req.betAmount = Number(web3.utils.fromWei(event.returnValues.betAmount, 'ether'));
                 req.requestId = event.returnValues.requestId;
-                req.transactionHash = event.transactionHash;
+                req.transaction_id = event.transactionHash;
                 req.playAt = Math.floor(Date.now() / 1000);
                 req.result = undefined;
                 if (lst.indexOf(q => q.requestId == req.requestId) == -1) {
