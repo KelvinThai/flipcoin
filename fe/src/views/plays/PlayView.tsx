@@ -54,7 +54,7 @@ export default function PlayView() {
       dispatch(generateContract(web3Provider))
       reset();
     } catch (er: any) {
-      toast(getToast(`${er}`));
+      toast(getToast(er));
     }
   };
 
