@@ -2,7 +2,6 @@ import {
   HStack,
   Text,
   Image,
-  Avatar,
   Flex,
   VStack,
   Stack,
@@ -11,27 +10,14 @@ import Link from "next/link";
 import React, { memo, useEffect } from "react";
 import { getLeaderBoardApi } from "../../apis";
 import { fonts } from "../../configs/constants";
-import { useAppSelector } from "../../reduxs/hooks";
 import { Player } from "../../types";
 import { fromNow, getBscScanUrl, numberFormat, showSortAddress } from "../../utils";
+import useRequest from "../../hooks/useRequest";
+import useSWR from "swr";
 
 const FlippedList =() => {
-  const [players, setPlayers] = React.useState<Player[]>([]);
-
   const url = getBscScanUrl() || '#';
-
-  const handleLoad = React.useCallback(async() => {
-    const rs = await getLeaderBoardApi();
-    setPlayers(rs)
-  }, []);
-
-  useEffect(() => {
-    handleLoad();
-    const interval = setInterval(() => {
-      handleLoad();
-    }, 1000 * 10);
-    return () => clearInterval(interval)    ;
-  }, []);
+  const {isError, isLoading, data: players } = useRequest<Player[]>(['/api/leaderboard'], getLeaderBoardApi, {refreshInterval: 3000});
 
   return (
     <Flex
@@ -43,7 +29,7 @@ const FlippedList =() => {
       border="1px solid rgba(255,255,255, 0.2)"
       mt="50px"
     >
-      {players.map((item, index) => (
+      {players?.map((item, index) => (
         <HStack
           as="li"
           key={index}
