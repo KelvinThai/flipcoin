@@ -29,7 +29,7 @@ contract FlipCoin is VRFConsumerBaseV2, Ownable {
     // this limit based on the network that you select, the size of the request,
     // and the processing of the callback request in the fulfillRandomWords()
     // function.
-    uint32 callbackGasLimit = 100000;
+    uint32 callbackGasLimit = 300000;
 
     // The default is 3, but you can set this higher.
     uint16 requestConfirmations = 3;
@@ -38,13 +38,9 @@ contract FlipCoin is VRFConsumerBaseV2, Ownable {
     // Cannot exceed VRFCoordinatorV2.MAX_NUM_WORDS.
     uint32 numWords = 1;
 
-    uint256[] public s_randomWords;
-    uint256 public s_requestId;
-
     // random number is 0: head, 1: tail
     uint256 public taxFee = 35; // 3,5 %
-    uint256 public taxFeeMin = 20; // 2 %
-    uint256 public taxFeeMax = 100; // 10 %
+    uint256 public taxFeeMax = 50; // 10 %
     uint256 public totalRequest=0;
     uint256 public totalWinCount=0;
     uint256 public totalRemainBalance=0;
@@ -70,7 +66,6 @@ contract FlipCoin is VRFConsumerBaseV2, Ownable {
     
     event SetCoordinator(address setter, address newCoordinator);
     event SetTaxFee(address setter, uint256 newFee);
-    event SetTaxFeeMinMax(address setter, uint256 newFeeMin, uint256 newFeeMax);
     event Flip(
         address player,
         uint256 bet,
@@ -80,7 +75,8 @@ contract FlipCoin is VRFConsumerBaseV2, Ownable {
     event Result(
         address player,
         uint256 requestid,
-        uint256 result
+        uint256 result,
+        uint256 randomResult
     );
     event Claim(
         address player,
@@ -101,22 +97,17 @@ contract FlipCoin is VRFConsumerBaseV2, Ownable {
     }
 
     function setTaxFee(uint256 newFee) public onlyOwner {
-        require(newFee>=taxFeeMin&&newFee<=taxFeeMax,"Fee out of range");
+        require(newFee<=taxFeeMax,"Fee out of range");
         taxFee = newFee;
         emit SetTaxFee(msg.sender, newFee);
     }
 
-    function setTaxFeeMinMax(uint256 newFeeMin, uint256 newFeeMax)
-        public
-        onlyOwner
-    {
-        taxFeeMin = newFeeMin;
-        taxFeeMax = newFeeMax;
-        emit SetTaxFeeMinMax(msg.sender, newFeeMin, newFeeMax);
-    }
-
     function setKeyHash(bytes32 newHash)public onlyOwner{
         keyHash=newHash;
+    }
+
+    function setGasLimit(uint32 newGas) public onlyOwner{
+        callbackGasLimit=newGas;
     }
 
     function flip(uint256 bet) public payable {
@@ -169,16 +160,16 @@ contract FlipCoin is VRFConsumerBaseV2, Ownable {
         {
             playerInfors[player].winCount+=1;
             playerInfors[player].balance+=betAmount*2;
-            totalWinCount+1;
+            totalWinCount+=1;
             totalRemainBalance+=betAmount*2;
         }
-        emit Result(player, requestId, result);
+        emit Result(player, requestId, result,randomWords[0]);
     }
 
     function claim() public{
         playerInfor storage playerinfor= playerInfors[msg.sender];
         uint256 amount=playerinfor.balance;
-        require(playerinfor.balance>0,"Insufficient account balance");
+        require(amount>0,"Insufficient account balance");
         require(address(this).balance>=amount,"FlipCoin: Insufficient account balance");
         playerinfor.balance=0;
         totalRemainBalance-=amount;

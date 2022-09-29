@@ -1,9 +1,8 @@
 const fs = require('fs');
 const web3 = require('web3');
 const abi = require('./smcAbi.json');
-const axios = require('axios');
 const block_log_path = 'block_flip_log.txt';
-const flip_list_path = 'flip_list.json';
+const flip_list_path = '../fe/json/data.json';
 
 const listSize = 20;
 let last_block = 0;
@@ -27,7 +26,7 @@ if (mode == 'PRODUCTION') {
 }
 else {
     rpc = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
-    contract_address = '0xbA0F2aB46ED1Fb8B5f2048EeB289c8c36B224041';
+    contract_address = '0x9dbcb54a1732acaa7af9e253298083163cae7da3';
     provider = new web3.providers.HttpProvider(rpc);
     web3bsc = new web3(provider);
     contract = new web3bsc.eth.Contract(abi, contract_address);
